@@ -2,6 +2,7 @@ package com.example.todoapp.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -70,6 +71,7 @@ public class SecurityConfig {
                 .cors() // active la config CORS
                 .and()
                 .authorizeHttpRequests()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // autorise Swagger et ressources publiques
                 .requestMatchers(
                         "/swagger-ui/**",
@@ -110,6 +112,7 @@ public class SecurityConfig {
                 "http://localhost:5174",
                 "https://priorito-frpizfj0j-dervauxjuliens-projects.vercel.app",
                 "https://priorito-1ngvrteuv-dervauxjuliens-projects.vercel.app",
+                "https://priorito-1e9y3ut3o-dervauxjuliens-projects.vercel.app",
                 "https://priorito.vercel.app"
         )); // front local
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS")); // méthodes HTTP autorisées

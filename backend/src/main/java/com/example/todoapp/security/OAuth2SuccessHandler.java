@@ -50,6 +50,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String token = jwtUtils.generateJwtToken(user.getUsername(), user.getRole().name());
 
         // Redirection du frontend avec le token en query param
-        response.sendRedirect("http://localhost:5173/oauth2/redirect?token=" + token);
+        // response.sendRedirect("http://localhost:5173/oauth2/redirect?token=" + token);
+        response.sendRedirect("https://priorito-1ngvrteuv-dervauxjuliens-projects.vercel.app/oauth2/redirect?token=" + token);
     }
 }
