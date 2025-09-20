@@ -105,7 +105,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174")); // front local
+        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174", "https://priorito-frpizfj0j-dervauxjuliens-projects.vercel.app")); // front local
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS")); // méthodes HTTP autorisées
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type")); // headers autorisés
         configuration.setAllowCredentials(true); // cookies et credentials autorisés
