@@ -29,14 +29,16 @@ export default function App() {
             <Navigate to="/tasks" replace />
           ) : (
             <AppLayout>
-              <div className="flex items-center justify-center mt-6">
-                <p>Venez vous vider la tête et organiser votre journée !</p>
+              <div className="flex items-center justify-center mt-10">
+                <p className="text-center text-2xl md:text-3xl font-semibold text-gray-700 dark:text-gray-200 tracking-wide leading-relaxed">
+                  Venez vous vider la tête et organiser votre journée !
+                </p>
               </div>
               <div className="flex items-center justify-center min-h-screen">
                 <div className="flex flex-col md:flex-row gap-6 w-full max-w-4xl">
-                  <Signup /> 
+                  <Signup />
                   <div className="self-center">ou</div>
-                  <Login /> 
+                  <Login />
                 </div>
               </div>
             </AppLayout>
@@ -53,7 +55,7 @@ export default function App() {
         element={
           <PrivateRoute>
             <AppLayout>
-              <Tasks /> 
+              <Tasks />
             </AppLayout>
           </PrivateRoute>
         }
@@ -65,7 +67,7 @@ export default function App() {
         element={
           <PrivateRoute roles={["ADMIN"]}>
             <AppLayout>
-              <AdminDashboard /> 
+              <AdminDashboard />
             </AppLayout>
           </PrivateRoute>
         }
