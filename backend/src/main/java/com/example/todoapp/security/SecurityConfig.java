@@ -68,7 +68,7 @@ public class SecurityConfig {
                                            OAuth2SuccessHandler oAuth2SuccessHandler) throws Exception {
 
         http.csrf().disable() // désactive CSRF car on utilise JWT
-                .cors() // active la config CORS
+                .cors().configurationSource(corsConfigurationSource()) // active la config CORS
                 .and()
                 .authorizeHttpRequests()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
