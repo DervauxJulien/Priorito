@@ -35,6 +35,7 @@ public class SecurityConfig {
 
     /**
      * Bean AuthenticationManager pour l'authentification classique
+     * (login/signup via REST)
      */
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http,
@@ -50,6 +51,7 @@ public class SecurityConfig {
 
     /**
      * Bean pour encoder les mots de passe avec BCrypt
+     * (utilisé lors de la création d'utilisateur)
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -64,11 +66,19 @@ public class SecurityConfig {
                                            CustomOAuth2UserService customOAuth2UserService,
                                            OAuth2SuccessHandler oAuth2SuccessHandler) throws Exception {
 
-        http.csrf().disable() // désactive CSRF car on utilise JWT
-                .cors().configurationSource(corsConfigurationSource()) // active la config CORS
+        http
+                // Désactive CSRF car on utilise JWT et pas de session côté serveur
+                .csrf().disable()
+
+                // Active la config CORS pour autoriser les requêtes frontend
+                .cors().configurationSource(corsConfigurationSource())
                 .and()
+
+                // Autorisations sur les endpoints
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // prévol CORS
+                        // Prévol CORS
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // Swagger et ressources publiques
                         .requestMatchers(
                                 "/swagger-ui/**",
@@ -78,20 +88,27 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
-                        // endpoints login/signup classiques accessibles sans token
+
+                        // Endpoints login/signup classiques accessibles sans token
                         .requestMatchers("/api/auth/**").permitAll()
-                        // endpoints OAuth2 (Google) publics
+
+                        // Endpoints OAuth2 (Google) publics
                         .requestMatchers("/oauth2/**").permitAll()
-                        // toutes les autres requêtes nécessitent un JWT
+
+                        // Toutes les autres requêtes nécessitent un JWT
                         .anyRequest().authenticated()
                 )
-                // ✅ on configure OAuth2, mais ça ne s’active que si tu appelles volontairement /oauth2/**
+
+                // Configuration OAuth2
+                // - Ne s’active que si l'utilisateur appelle volontairement /oauth2/**
+                // - Déclenche OAuth2SuccessHandler après login
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/oauth2/authorization/google")
-                        .userInfoEndpoint().userService(customOAuth2UserService)
+                        .loginPage("/oauth2/authorization/google") // page de login OAuth2
+                        .userInfoEndpoint().userService(customOAuth2UserService) // récupère infos utilisateur
                         .and()
-                        .successHandler(oAuth2SuccessHandler)
+                        .successHandler(oAuth2SuccessHandler) // après login, génération JWT
                 )
+
                 // JWT = pas de session côté serveur
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
@@ -103,6 +120,8 @@ public class SecurityConfig {
 
     /**
      * Configuration CORS pour autoriser les requêtes frontend
+     * - Autorise localhost pour dev
+     * - Autorise Vercel pour prod
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
