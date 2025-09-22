@@ -115,6 +115,7 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(List.of(
                 "https://*.vercel.app",
                 "https://priorito-git-main-dervauxjuliens-projects.vercel.app",
+                "https://priorito-lxjeiyhnw-dervauxjuliens-projects.vercel.app",
                 "http://localhost:5173",
                 "http://localhost:5174"
         ));

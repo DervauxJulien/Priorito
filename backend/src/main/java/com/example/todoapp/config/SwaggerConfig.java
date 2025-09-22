@@ -27,7 +27,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 // Informations générales sur l'API
                 .info(new Info()
-                        .title("TodoApp API")
+                        .title("Priorito")
                         .version("1.0")
                 )
                 // Déclare la sécurité pour Swagger UI
