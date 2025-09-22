@@ -114,6 +114,7 @@ public class SecurityConfig {
         // autorise le frontend sur Vercel et local
         configuration.setAllowedOriginPatterns(List.of(
                 "https://*.vercel.app",
+                "https://priorito-git-main-dervauxjuliens-projects.vercel.app",
                 "http://localhost:5173",
                 "http://localhost:5174"
         ));
