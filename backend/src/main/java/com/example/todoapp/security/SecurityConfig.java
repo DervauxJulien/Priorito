@@ -67,37 +67,35 @@ public class SecurityConfig {
         http.csrf().disable() // désactive CSRF car on utilise JWT
                 .cors().configurationSource(corsConfigurationSource()) // active la config CORS
                 .and()
-                .authorizeHttpRequests()
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // prévol CORS
-                // Swagger et ressources publiques
-                .requestMatchers(
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/v3/api-docs/**",
-                        "/v3/api-docs.yaml",
-                        "/swagger-resources/**",
-                        "/webjars/**"
-                ).permitAll()
-                // endpoints login/signup classiques
-                .requestMatchers("/api/auth/**").permitAll()
-                // OAuth2 pour Google
-                .requestMatchers("/oauth2/**").permitAll()
-                // toutes les autres requêtes nécessitent authentification
-                .anyRequest().authenticated()
-                .and()
-                // OAuth2 login
-                .oauth2Login()
-                .loginPage("/oauth2/authorization/google")
-                .userInfoEndpoint()
-                .userService(customOAuth2UserService)
-                .and()
-                .successHandler(oAuth2SuccessHandler)
-                .and()
-                // session stateless pour JWT
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // prévol CORS
+                        // Swagger et ressources publiques
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+                        // endpoints login/signup classiques accessibles sans token
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // endpoints OAuth2 (Google) publics
+                        .requestMatchers("/oauth2/**").permitAll()
+                        // toutes les autres requêtes nécessitent un JWT
+                        .anyRequest().authenticated()
+                )
+                // ✅ on configure OAuth2, mais ça ne s’active que si tu appelles volontairement /oauth2/**
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/oauth2/authorization/google")
+                        .userInfoEndpoint().userService(customOAuth2UserService)
+                        .and()
+                        .successHandler(oAuth2SuccessHandler)
+                )
+                // JWT = pas de session côté serveur
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // Filtre JWT avant l'authentification standard
+        // Filtre JWT avant UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
