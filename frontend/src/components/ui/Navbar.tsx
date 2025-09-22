@@ -14,6 +14,8 @@ export default function Navbar() {
 
   useEffect(() => setMounted(true), []);
 
+  const hideMenu = location.pathname === "/";
+
   return (
     <nav className="w-full bg-gray-100 dark:bg-gray-900 px-6 py-4 flex justify-between items-center shadow">
       {/* Nom du site */}
@@ -63,7 +65,7 @@ export default function Navbar() {
         )}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="text-gray-800 dark:text-gray-100 focus:outline-none"
+          className="text-gray-800 dark:text-white focus:outline-none"
         >
           ☰
         </button>
