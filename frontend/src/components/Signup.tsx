@@ -17,12 +17,13 @@ export default function Signup() {
   // ===========================================================
   // Hooks React et contexte global
   // ===========================================================
-  const navigate = useNavigate();       
+  const navigate = useNavigate();
   const { setToken } = useAuth();       
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState(""); 
+  const [loading, setLoading] = useState(false); // nouvel état pour feedback utilisateur
 
   // ===========================================================
   // Gestion de l'inscription
@@ -35,16 +36,25 @@ export default function Signup() {
   // ===========================================================
   const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage("");
     try {
+      // Création de l'utilisateur
       await api.post("/auth/signup", { username, email, password });
+
+      // Login automatique après inscription
       const res = await api.post("/auth/login", { username, password });
 
+      // Stockage des tokens
       localStorage.setItem("refreshToken", res.data.refreshToken);
       setToken(res.data.accessToken);
 
+      // Redirection vers /tasks
       navigate("/tasks");
     } catch (err: any) {
       setMessage(err.response?.data || "Erreur inscription");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,7 +89,10 @@ export default function Signup() {
           minLength={6}
         />
 
-        <Button type="submit" className="mt-2">S'inscrire</Button>
+        <Button type="submit" className="mt-2" disabled={loading}>
+          {loading ? "Inscription..." : "S'inscrire"}
+        </Button>
+
         {message && (
           <p className="text-sm mt-2 text-center text-gray-700 dark:text-gray-200">
             {message}

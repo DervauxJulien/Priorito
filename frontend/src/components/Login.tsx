@@ -52,7 +52,7 @@ export default function Login() {
   // ===========================================================
   const handleGoogleLogin = () => {
     // window.location.href = "http://localhost:8080/oauth2/authorization/google";
-    // window.location.href = "https://priorito.onrender.com/oauth2/authorization/google";
+    window.location.href = "https://priorito.onrender.com/oauth2/authorization/google";
   };
 
   // ===========================================================
@@ -82,7 +82,7 @@ export default function Login() {
       </form>
 
       {/* 🔹 Login via Google */}
-      {/* <div className="mt-6 flex flex-col items-center gap-2">
+      <div className="mt-6 flex flex-col items-center gap-2">
         <p className="text-gray-500 text-sm">ou</p>
         <Button
           variant="outline"
@@ -91,7 +91,7 @@ export default function Login() {
         >
           Se connecter avec Google
         </Button>
-      </div> */}
+      </div>
     </Card>
   );
 }

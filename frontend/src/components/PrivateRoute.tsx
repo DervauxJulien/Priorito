@@ -13,7 +13,7 @@ import { useAuth } from "../context/AuthContext";
 
 interface PrivateRouteProps {
   children: JSX.Element; // Composant enfant à rendre si autorisé
-  roles?: string[];      
+  roles?: string[];      // Rôles autorisés pour accéder à cette route
 }
 
 export default function PrivateRoute({ children, roles }: PrivateRouteProps) {
@@ -21,18 +21,14 @@ export default function PrivateRoute({ children, roles }: PrivateRouteProps) {
   // Récupère l'état auth depuis le contexte global
   // - isLoggedIn : booléen si l'utilisateur est connecté
   // - role : rôle de l'utilisateur connecté
+  // - loading : indique si le contexte est encore en train de charger
   // ===========================================================
-  const { isLoggedIn, role } = useAuth();
+  const { isLoggedIn, role, loading } = useAuth();
 
   // ===========================================================
-  // 1️⃣ Non connecté → redirection vers login
+  // ant que le contexte charge le token, on affiche un loader
   // ===========================================================
-  if (!isLoggedIn) return <Navigate to="/" replace />;
-
-  // ===========================================================
-  // 2️⃣ Récupération du rôle en cours → loading si pas encore défini
-  // ===========================================================
-  if (roles && role === null) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-full">
         Chargement...
@@ -41,12 +37,17 @@ export default function PrivateRoute({ children, roles }: PrivateRouteProps) {
   }
 
   // ===========================================================
-  // 3️⃣ Accès refusé si rôle non autorisé → redirection vers /tasks
+  // 1️⃣ Non connecté → redirection vers login
+  // ===========================================================
+  if (!isLoggedIn) return <Navigate to="/" replace />;
+
+  // ===========================================================
+  // 2️⃣ Accès refusé si rôle non autorisé → redirection vers /tasks
   // ===========================================================
   if (roles && (!role || !roles.includes(role))) return <Navigate to="/tasks" replace />;
 
   // ===========================================================
-  // 4️⃣ Accès autorisé → rend l'enfant
+  // 3️⃣ Accès autorisé → rend l'enfant
   // ===========================================================
   return children;
 }
