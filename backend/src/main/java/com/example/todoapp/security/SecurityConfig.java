@@ -24,7 +24,7 @@ import java.util.List;
  *   - les permissions sur les endpoints
  *   - la politique CORS
  */
-@EnableGlobalMethodSecurity(prePostEnabled = true) // permet @PreAuthorize dans les controllers
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
 public class SecurityConfig {
 
@@ -68,9 +68,8 @@ public class SecurityConfig {
                 .cors().configurationSource(corsConfigurationSource()) // active la config CORS
                 .and()
                 .authorizeHttpRequests()
-                // OPTIONS : autorisé pour tous (prévol de CORS)
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                // endpoints Swagger/publics
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // prévol CORS
+                // Swagger et ressources publiques
                 .requestMatchers(
                         "/swagger-ui/**",
                         "/swagger-ui.html",
@@ -79,55 +78,48 @@ public class SecurityConfig {
                         "/swagger-resources/**",
                         "/webjars/**"
                 ).permitAll()
-                // REST classique JWT accessible publiquement : login/signup
+                // endpoints login/signup classiques
                 .requestMatchers("/api/auth/**").permitAll()
-                // OAuth2 uniquement pour Google login
+                // OAuth2 pour Google
                 .requestMatchers("/oauth2/**").permitAll()
                 // toutes les autres requêtes nécessitent authentification
                 .anyRequest().authenticated()
                 .and()
-                // ----------------- OAuth2 Login -----------------
+                // OAuth2 login
                 .oauth2Login()
-                .loginPage("/oauth2/authorization/google") // seulement pour bouton Google
+                .loginPage("/oauth2/authorization/google")
                 .userInfoEndpoint()
-                .userService(customOAuth2UserService) // récupère les infos user depuis Google
+                .userService(customOAuth2UserService)
                 .and()
-                .successHandler(oAuth2SuccessHandler) // redirection après login OAuth2
+                .successHandler(oAuth2SuccessHandler)
                 .and()
-                // ----------------- Gestion session -----------------
+                // session stateless pour JWT
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS); // JWT → pas de session serveur
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        // ----------------- Filtre JWT -----------------
-        // S'assure que le JWT est vérifié avant toute authentification standard
+        // Filtre JWT avant l'authentification standard
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     /**
-     * Configuration CORS pour autoriser les requêtes du frontend
+     * Configuration CORS pour autoriser les requêtes frontend
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // autorise le frontend sur Vercel et local
         configuration.setAllowedOriginPatterns(List.of(
-                "https://*.vercel.app",
-                "https://priorito-git-main-dervauxjuliens-projects.vercel.app",
-                "https://priorito-lxjeiyhnw-dervauxjuliens-projects.vercel.app",
                 "http://localhost:5173",
-                "http://localhost:5174"
+                "http://localhost:5174",
+                "https://*.vercel.app",
+                "https://priorito.onrender.com"
         ));
-        // méthodes HTTP autorisées
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
-        // headers autorisés
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        // cookies et credentials autorisés
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // appliquer CORS à tous les endpoints
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
