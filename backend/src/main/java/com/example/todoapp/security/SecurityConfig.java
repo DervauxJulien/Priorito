@@ -12,16 +12,14 @@ import org.springframework.security.crypto.bcrypt.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.*;
 
 import java.util.List;
 
 /**
  * Configuration globale de Spring Security pour l'application.
  * Gère :
- *   - l'authentification JWT
+ *   - l'authentification JWT (login/signup classique)
  *   - l'authentification OAuth2 (Google)
  *   - les permissions sur les endpoints
  *   - la politique CORS
@@ -31,13 +29,12 @@ import java.util.List;
 public class SecurityConfig {
 
     @Autowired
-    private UserDetailsServiceImpl userDetailsService; // chargement des utilisateurs en DB
+    private UserDetailsServiceImpl userDetailsService; // service pour charger les utilisateurs
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter; // filtre JWT pour chaque requête
 
     /**
-     * Bean AuthenticationManager utilisé pour l'authentification classique
-     * via username/password
+     * Bean AuthenticationManager pour l'authentification classique
      */
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http,
@@ -45,8 +42,8 @@ public class SecurityConfig {
                                                        UserDetailsServiceImpl userDetailsService)
             throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
-                .userDetailsService(userDetailsService) // service custom pour charger l’utilisateur
-                .passwordEncoder(passwordEncoder)       // encoder les passwords
+                .userDetailsService(userDetailsService)
+                .passwordEncoder(passwordEncoder)
                 .and()
                 .build();
     }
@@ -71,8 +68,9 @@ public class SecurityConfig {
                 .cors().configurationSource(corsConfigurationSource()) // active la config CORS
                 .and()
                 .authorizeHttpRequests()
+                // OPTIONS : autorisé pour tous (prévol de CORS)
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                // autorise Swagger et ressources publiques
+                // endpoints Swagger/publics
                 .requestMatchers(
                         "/swagger-ui/**",
                         "/swagger-ui.html",
@@ -81,21 +79,27 @@ public class SecurityConfig {
                         "/swagger-resources/**",
                         "/webjars/**"
                 ).permitAll()
-                // endpoints d'authentification publics
-                .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
+                // REST classique JWT accessible publiquement : login/signup
+                .requestMatchers("/api/auth/**").permitAll()
+                // OAuth2 uniquement pour Google login
+                .requestMatchers("/oauth2/**").permitAll()
                 // toutes les autres requêtes nécessitent authentification
                 .anyRequest().authenticated()
                 .and()
-                .oauth2Login() // config OAuth2
+                // ----------------- OAuth2 Login -----------------
+                .oauth2Login()
+                .loginPage("/oauth2/authorization/google") // seulement pour bouton Google
                 .userInfoEndpoint()
                 .userService(customOAuth2UserService) // récupère les infos user depuis Google
                 .and()
                 .successHandler(oAuth2SuccessHandler) // redirection après login OAuth2
                 .and()
+                // ----------------- Gestion session -----------------
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS); // JWT → pas de session serveur
 
-        // ajout du filtre JWT avant le filtre standard username/password
+        // ----------------- Filtre JWT -----------------
+        // S'assure que le JWT est vérifié avant toute authentification standard
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -107,17 +111,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        // autorise le frontend sur Vercel et local
         configuration.setAllowedOriginPatterns(List.of(
                 "https://*.vercel.app",
                 "http://localhost:5173",
                 "http://localhost:5174"
-        )); // front local
-        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS")); // méthodes HTTP autorisées
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type")); // headers autorisés
-        configuration.setAllowCredentials(true); // cookies et credentials autorisés
+        ));
+        // méthodes HTTP autorisées
+        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        // headers autorisés
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        // cookies et credentials autorisés
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // appliquer CORS à tous les endpoints
+        // appliquer CORS à tous les endpoints
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }
