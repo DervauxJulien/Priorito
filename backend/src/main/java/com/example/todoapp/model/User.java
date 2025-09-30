@@ -16,9 +16,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
     private String refreshToken;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks;
+    private boolean enabled = false;
 
     public Long getId() { return id; }
     public String getUsername() { return username; }
@@ -33,4 +33,6 @@ public class User {
     public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
     public List<Task> getTasks() { return tasks; }
     public void setTasks(List<Task> tasks) { this.tasks = tasks; }
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
 }

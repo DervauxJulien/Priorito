@@ -1,6 +1,7 @@
 package com.example.todoapp.security;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,9 @@ public class JwtUtils {
 
     @Value("${jwt.expiration}")
     private long jwtExpirationMs; // durée de validité d’un token en millisecondes
+
+    @Value("${jwt.expiration.mail}")
+    private long jwtExpirationMail;
 
     /**
      * Génère un JWT pour un utilisateur donné avec son rôle.
@@ -64,5 +68,17 @@ public class JwtUtils {
             System.out.println("JWT error: " + e.getMessage()); // log simple pour debug
         }
         return false;
+    }
+
+    public String generateTemporaryToken(String username) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpirationMail);
+
+        return Jwts.builder()
+                .setSubject(username)                 // contenu du token
+                .setIssuedAt(now)                     // date de création
+                .setExpiration(expiryDate)            // expiration 15min
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
     }
 }
